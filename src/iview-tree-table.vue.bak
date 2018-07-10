@@ -1,0 +1,445 @@
+<template>
+    <Table ref="table" :columns="cols" :data="records" :size="size" :width="width" :height="height" :stripe="stripe" :border="border" :showHeader="showHeader" :highlightRow="highlightRow" :rowClassName="rowClassName" :context="context" :noDataText="noDataText" :noFilteredDataText="noFilteredDataText" :disabledHover="disabledHover" :loading="loading">
+        <template slot="checkbox" slot-scope="{row}">
+            <Checkbox :value="row._checked" :disabled="row._disable" :indeterminate="row._indeterminate" @click.native.stop="handleClick" @on-change="toggleSelect(row)"></Checkbox>
+        </template>
+        <template slot="checkboxHeader" slot-scope="{row}">
+            <Checkbox :value="allChecked" :indeterminate="allIndeterminate" @click.native.stop="handleClick" @on-change="toggleAllSelect"></Checkbox>
+        </template>
+    </Table>
+</template>
+<script>
+const COL_TYPES = ['index', 'expand', 'html'];
+export default {
+    name: 'i-tree-table',
+    props: {
+        idProp: {
+            type: String,
+            default () {
+                return 'id';
+            }
+        },
+        pidProp: {
+            type: String,
+            default () {
+                return 'pid';
+            }
+        },
+        data: {
+            type: Array,
+            default () {
+                return [];
+            }
+        },
+        columns: {
+            type: Array,
+            default () {
+                return [];
+            }
+        },
+        children: {
+            type: String,
+            default () {
+                return 'children';
+            }
+        },
+        treeColIndex: Number,
+        selection: {
+            type: Boolean,
+            default () {
+                return false;
+            }
+        },
+        levelOffset: {
+            type: Number,
+            default () {
+                return 30;
+            }
+        },
+        size: {
+            validator (value) {
+                return ['small', 'large', 'default'].some(r => r === value);
+            }
+        },
+        width: {
+            type: [Number, String]
+        },
+        height: {
+            type: [Number, String]
+        },
+        stripe: {
+            type: Boolean,
+            default: false
+        },
+        border: {
+            type: Boolean,
+            default: false
+        },
+        showHeader: {
+            type: Boolean,
+            default: true
+        },
+        highlightRow: {
+            type: Boolean,
+            default: false
+        },
+        rowClassName: {
+            type: Function,
+            default () {
+                return '';
+            }
+        },
+        context: {
+            type: Object
+        },
+        noDataText: {
+            type: String
+        },
+        noFilteredDataText: {
+            type: String
+        },
+        disabledHover: {
+            type: Boolean
+        },
+        loading: {
+            type: Boolean,
+            default: false
+        }
+    },
+    data () {
+        return {
+            records: [],
+            cols: [],
+            cloneData: [],
+            id: 0,
+            allChecked: false,
+            allIndeterminate: false,
+            initExpandIds: []
+        };
+    },
+    mounted () {
+        this.transformCols();
+        this.transformData();
+    },
+    watch: {
+        data () {
+            this.transformData();
+        }
+    },
+    methods: {
+        /**
+         * 转换列
+         */
+        transformCols () {
+            let cols = this.columns.reduce((pre, current) => {
+                if (!current.type || COL_TYPES.includes(current.type)) {
+                    let col = Object.assign({}, current);
+                    if (!col.render && current.template) {
+                        let template = this.$scopedSlots[current.template];
+                        if (template) {
+                            col.render = (h, params) => {
+                                return template(params);
+                            };
+                        }
+                    }
+                    pre.push(col);
+                }
+                return pre;
+            }, []);
+
+            if (cols.length) {
+                let treeIndex = parseInt(this.treeColIndex);
+                if (typeof this.treeColIndex === 'undefined' || isNaN(this.treeColIndex)) {
+                    treeIndex = cols.findIndex(col => !COL_TYPES.includes(col.type));
+                }
+                let render = cols[treeIndex].render;
+                cols[treeIndex].render = (h, params) => {
+                    let slot = this.$scopedSlots.tree;
+                    let hasChildren = params.row._hasChildren;
+                    let content = render ? render(h, params) : params.row[params.column.key];
+                    return h('div', {
+                        style: {
+                            marginLeft: `${params.row._level * this.levelOffset}px`
+                        }
+                    }, [hasChildren ? h('div', {
+                        on: {
+                            click: this.expandHandler.bind(this, params)
+                        },
+                        style: {
+                            cursor: 'pointer'
+                        }
+                    }, [
+                        slot ? slot(params) : h('Icon', {
+                            props: {
+                                type: params.row._expand ? 'ios-arrow-down' : 'ios-arrow-right'
+                            },
+                            style: {
+                                marginRight: '10px'
+                            }
+                        }), content]) : content]);
+                };
+            }
+
+            if (this.selection) {
+                cols.unshift({
+                    width: 55,
+                    render: (h, params) => {
+                        return this.$refs.table.$scopedSlots.checkbox(params);
+                    },
+                    renderHeader: (h, params) => {
+                        return this.$refs.table.$scopedSlots.checkboxHeader(params);
+                    }
+                });
+            }
+
+            this.cols = cols;
+        },
+        /**
+         * 转换数据
+         */
+        transformData () {
+            // 克隆并转为数组
+            this.cloneData = this.treeToArray(this.data);
+            // 初始化默认状态(_expand/_checked)
+            this.initStatus();
+            // 清空初始化展开ID
+            this.initExpandIds = [];
+            // 提取根数据
+            this.records = this.cloneData
+                .filter(r => r[this.pidProp] === 0 || r[this.pidProp] === null || r[this.pidProp] === undefined)
+                .map(record => Object.assign({
+                    _level: 0,
+                    _disable: false,
+                    _checked: false,
+                    _expand: false,
+                    _indeterminate: false,
+                    _hasChildren: false
+                }, record));
+            // 初始化展开
+            this.initExpand();
+            // 检查所有选择状态
+            this.checkAllCheckStatus();
+        },
+        /**
+         * 转换单个数据
+         * @param record 单个数据
+         * @param level 当前树层数
+         * @param override 覆盖属性
+         */
+        transformRecord (record, level, override) {
+            let parent = this.cloneData.find(r => r[this.idProp] === record[this.pidProp]) || {};
+            let result = Object.assign({
+                _level: level,
+                _disable: false,
+                _checked: (parent._checked && !parent._indeterminate && !record._disable) || false,
+                _expand: false,
+                _indeterminate: false,
+                _hasChildren: false
+            }, record, override);
+            // 手动
+            if (override._expand === false) {
+                this.setStatus(result, '_checked', result._checked);
+                this.setStatus(result, '_expand', result._expand);
+                this.setStatus(result, '_indeterminate', result._indeterminate);
+            }
+            return result;
+        },
+        /**
+         * 展开/收缩 处理
+         */
+        expandHandler (params, event) {
+            event.stopPropagation();
+            let status = !params.row._expand;
+            if (status) {
+                // 手动的时候设置下级节点默认为不展开
+                this.expand(params.row, {_expand: false});
+            } else {
+                this.collapse(params.row);
+            }
+        },
+        setStatus (record, type, value, change = false) {
+            record[type] = value;
+            if (change) {
+                let index = this.records.findIndex(r => r[this.idProp] === record[this.idProp]);
+                if (index >= 0) {
+                    this.$set(this.records, index, record);
+                }
+            }
+            let data = this.cloneData.find(r => r[this.idProp] === record[this.idProp]);
+            if (data) {
+                data[type] = value;
+            }
+        },
+        expand (record, override = {}) {
+            let _children = this.cloneData.filter(r => r[this.pidProp] === record[this.idProp]);
+            let children = _children.map(child => this.transformRecord(child, record._level + 1, override));
+            let index = this.records.findIndex(r => r[this.idProp] === record[this.idProp]);
+            this.records.splice(index, 1, record, ...children);
+            this.checkSameLevelUpChecked(record[this.idProp]);
+            this.setStatus(record, '_expand', true, true);
+            this.checkAllCheckStatus();
+        },
+        collapse (record) {
+            let pids = [record[this.idProp]];
+            // 剔除掉record的所有下级节点
+            this.records = this.records.filter(r => {
+                let has = pids.includes(r[this.pidProp]);
+                if (has) {
+                    pids.push(r[this.idProp]);
+                }
+                return !has;
+            });
+            let index = this.records.findIndex(r => r[this.idProp] === record[this.idProp]);
+            this.$set(this.records, index, record);
+            this.setStatus(record, '_expand', false, true);
+        },
+        /**
+         * 初始化默认展开状态
+         */
+        initExpand () {
+            let record = this.records.find(r => !this.initExpandIds.includes(r[this.idProp]) && r._expand);
+            if (record) {
+                this.expand(record);
+                this.initExpandIds.push(record[this.idProp]);
+                this.initExpand();
+            }
+        },
+        treeToArray (tree, array = []) {
+            tree.forEach(item => {
+                let r = Object.assign({}, item);
+                Reflect.deleteProperty(r, this.children);
+                array.push(r);
+                if (item[this.children] && item[this.children].length) {
+                    r._hasChildren = true;
+                    this.treeToArray(item[this.children], array);
+                }
+            });
+            return array;
+        },
+        findUp (pid, fn) {
+            if (pid === null || pid === undefined) return;
+            let record = this.cloneData.find(r => r[this.idProp] === pid);
+            if (record) {
+                fn(record);
+                this.findUp(record[this.pidProp], fn);
+            }
+        },
+        initStatus () {
+            this.cloneData.filter(r => r._expand).forEach(r => this.findUp(r[this.pidProp], record => record._expand = true));
+            this.cloneData.filter(r => r._disable).forEach(r => this.findUp(r[this.pidProp], record => {
+                let sameLevelDisabled = this.cloneData.filter(r => r[this.pidProp] === record[this.idProp]).every(r => r._disable);
+                if (sameLevelDisabled) {
+                    this.setStatus(record, '_disable', true, true);
+                }
+            }));
+            this.cloneData.filter(r => r._checked).forEach(r => this.findUp(r[this.pidProp], record => this.sameLevelChecked(record[this.idProp], record, this.cloneData)));
+        },
+        /**
+         * 平级检查向上更新
+         */
+        checkSameLevelUpChecked (pid, records = this.records) {
+            let record = records.find(r => r[this.idProp] === pid);
+            if (!record) return;
+            this.sameLevelChecked(pid, record, records);
+            this.checkSameLevelUpChecked(record[this.pidProp]);
+        },
+        sameLevelChecked (pid, record, records) {
+            let children = records.filter(r => r[this.pidProp] === pid);
+            if (!children || !children.length) {
+                return false;
+            }
+            // 平级节点状态(true=全勾,false=[全没勾,勾部分])
+            let sameLevelChecked = children.every(r => r._checked && !r._indeterminate);
+            // 平级节点状态(true=至少勾了一个, false=全没勾)
+            let sameChecked = children.some(r => r._checked || r._indeterminate);
+
+            if (sameLevelChecked) { // 全勾
+                this.setStatus(record, '_checked', true);
+                this.setStatus(record, '_indeterminate', false, true);
+            } else if (!sameChecked) { // 全没勾
+                this.setStatus(record, '_checked', false);
+                this.setStatus(record, '_indeterminate', false, true);
+            } else if (sameChecked && !sameLevelChecked) { // 至少勾了一个
+                this.setStatus(record, '_checked', true);
+                this.setStatus(record, '_indeterminate', true, true);
+            }
+        },
+        toggleSelect (row) {
+            let self = this.records.find(r => r[this.idProp] === row[this.idProp]);
+            if (!self) return;
+            let status = !row._checked;
+
+            // 更新下级节点和自己
+            let pids = [row[this.idProp]];
+            this.records.filter(r => !r._disable).forEach(record => {
+                let has = pids.includes(record[this.pidProp]);
+                if (has) {
+                    pids.push(record[this.idProp]);
+                    this.setStatus(record, '_checked', status);
+                    this.setStatus(record, '_indeterminate', false, true);
+                }
+            });
+            let clonePids = [row[this.idProp]];
+            this.cloneData.filter(r => !r._disable).forEach(record => {
+                let has = clonePids.includes(record[this.pidProp]);
+                if (has) {
+                    clonePids.push(record[this.idProp]);
+                    record._checked = status;
+                    record._indeterminate = false;
+                }
+            });
+            let has = this.sameLevelChecked(row[this.idProp], self, this.records);
+            if (!has) {
+                this.setStatus(self, '_checked', status, true);
+            }
+
+            this.checkSameLevelUpChecked(row[this.pidProp]);
+            this.checkAllCheckStatus();
+        },
+        toggleAllSelect () {
+            let status = !this.allChecked;
+            this.records.filter(r => !r._disable).forEach(r => {
+                this.setStatus(r, '_indeterminate', false);
+                this.setStatus(r, '_checked', status, true);
+            });
+            this.cloneData.filter(r => !r._disable).forEach(record => {
+                record._checked = status;
+                record._indeterminate = false;
+            });
+            this.allChecked = status;
+            this.allIndeterminate = false;
+        },
+        /**
+         * 检查所有选择状态
+         */
+        checkAllCheckStatus () {
+            let isAllChecked = this.records.every(r => r._checked && !r._indeterminate);
+            if (isAllChecked) {
+                this.allChecked = true;
+                this.allIndeterminate = false;
+                return;
+            }
+            let isSomeChecked = this.records.some(r => r._checked || r._indeterminate);
+            if (isSomeChecked) {
+                this.allChecked = true;
+                this.allIndeterminate = true;
+                return;
+            }
+            this.allChecked = false;
+            this.allIndeterminate = false;
+        },
+        findSelection (selection, pid) {
+            this.cloneData.filter(r => r[this.pidProp] === pid && r._checked).forEach(r => {
+                selection.set(r[this.idProp], r);
+                this.findSelection(selection, r[this.idProp]);
+            });
+        },
+        getSelection (indeterminate = false) {
+            let selection = new Map();
+            this.cloneData.filter(r => r._checked && (indeterminate ? true : !r._indeterminate)).forEach(r => selection.set(r[this.idProp], r));
+            return selection;
+        },
+        handleClick () {}
+    }
+};
+</script>

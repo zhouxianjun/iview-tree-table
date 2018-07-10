@@ -1,0 +1,51 @@
+{
+  "extends": "standard",
+  "root": true,
+  "parserOptions": {
+    "ecmaVersion": 7,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "arrowFunctions": true,
+      "defaultParams": true
+    }
+  },
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "globals": {
+  },
+  "plugins": [
+    "html",
+    "standard"
+  ],
+  "rules": {
+    "indent": [
+      "error",
+      4,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ],
+    "no-console": [
+      "error"
+    ],
+    "no-empty": 2,
+    "no-eq-null": 2,
+    "no-new": 2,
+    "no-fallthrough": 2,
+    "no-unreachable": 2,
+    "no-var": 2,
+    "no-return-assign": 0
+  }
+}
