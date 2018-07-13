@@ -88,6 +88,7 @@ export default {
             }, 1000);
         },
         ok () {
+            /* eslint-disable no-console */
             console.log(this.$refs.tree.getCheckedNodes());
             console.log(this.$refs.tree.getCheckedNodes(true));
         }

@@ -9,5 +9,7 @@ Vue.use(iView);
 new Vue({
     el: '#app',
     template: '<Example/>',
-    components: { Example}
+    components: {
+        Example: Example
+    }
 });
