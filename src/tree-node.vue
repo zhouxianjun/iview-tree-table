@@ -3,7 +3,7 @@
         <ul :class="classes">
             <li class="row">
                 <template v-for="(column, index) in columns">
-                    <div :class="['cell-wrapper', {'cell-wrapper-border': bottomLine}]" :key="index">
+                    <div :class="['cell-wrapper', {'cell-wrapper-border': bottomLine}]" :key="`cell-${index}`">
                         <div :class="['cell', column.className]" :style="cellStyle(column, index)">
                             <template v-if="index === 0">
                                 <span :class="arrowClasses" @click="handleExpand" :style="{marginLeft: `${data.nodeLevel * 18}px`}">
@@ -17,7 +17,7 @@
                         </div>
                     </div>
                 </template>
-                <Tree-Table-node v-if="data.expand" v-for="(item, i) in children" :key="i" :data="item" :columns="columns" :columns-width="columnsWidth" :bottom-line="bottomLine" :show-checkbox="showCheckbox" :children-key="childrenKey">
+                <Tree-Table-node v-if="data.expand" v-for="(item, i) in children" :key="`child-${i}`" :data="item" :columns="columns" :columns-width="columnsWidth" :bottom-line="bottomLine" :show-checkbox="showCheckbox" :children-key="childrenKey">
                 </Tree-Table-node>
             </li>
         </ul>
