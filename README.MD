@@ -37,6 +37,9 @@ export default {
 | children-key  | 定义子节点键                                  | String   | -    | 'children' |
 | load-data     | 异步加载数据的方法                            | Function | -    | -          |
 | show-header   | 是否显示表头                                  | Boolean  | -    | false      |
+| arrow-icon-right   | 箭头图标-右                                  | String  | -    | arrow-right-b      |
+| arrow-icon-down    | 箭头图标-下                                 | String  | -    | arrow-down-b      |
+| loading-icon   | 加载图标                                  | String  | -    | load-c      |
 
 ### Columns Configs
 

@@ -14,7 +14,7 @@
                 </template>
             </slot>
         </div>
-        <tree-table-node v-for="(item, i) in stateTree" :key="i" :data="item" :columns="cols.slice(1)" :columns-width="columnsWidth" visible :bottom-line="bottomLine" :show-checkbox="showCheckbox" :children-key="childrenKey">
+        <tree-table-node v-for="(item, i) in stateTree" :key="i" :data="item" :columns="cols.slice(1)" :columns-width="columnsWidth" visible :bottom-line="bottomLine" :show-checkbox="showCheckbox" :arrow-icon-down="arrowIconDown" :arrow-icon-right="arrowIconRight" :loading-icon="loadingIcon" :children-key="childrenKey">
         </tree-table-node>
         <div :class="[prefixCls + '-empty']" v-if="!stateTree.length">{{ emptyText }}</div>
     </div>
@@ -67,6 +67,18 @@ export default {
         border: {
             type: Boolean,
             default: false
+        },
+        arrowIconRight: {
+            type: String,
+            default: 'arrow-right-b'
+        },
+        arrowIconDown: {
+            type: String,
+            default: 'arrow-down-b'
+        },
+        loadingIcon: {
+            type: String,
+            default: 'load-c'
         }
     },
     data () {

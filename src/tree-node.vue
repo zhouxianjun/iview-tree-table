@@ -7,8 +7,8 @@
                         <div :class="['cell', column.className]" :style="cellStyle(column, index)">
                             <template v-if="index === 0">
                                 <span :class="arrowClasses" @click="handleExpand" :style="{marginLeft: `${data.nodeLevel * 18}px`}">
-                                    <Icon v-if="showArrow" :type="data.expand ? 'arrow-down-b' : 'arrow-right-b'"></Icon>
-                                    <Icon v-if="showLoading" type="load-c" class="ivu-load-loop"></Icon>
+                                    <Icon v-if="showArrow" :type="data.expand ? arrowIconDown : arrowIconRight"></Icon>
+                                    <Icon v-if="showLoading" :type="loadingIcon" class="ivu-load-loop"></Icon>
                                 </span>
                                 <Checkbox v-if="showCheckbox" :value="data.checked" :indeterminate="data.indeterminate" :disabled="data.disabled || data.disableCheckbox" @click.native.prevent="handleCheck"></Checkbox>
                             </template>
@@ -68,6 +68,18 @@
             },
             columnsWidth: {
                 type: Object
+            },
+            arrowIconRight: {
+                type: String,
+                default: 'arrow-right-b'
+            },
+            arrowIconDown: {
+                type: String,
+                default: 'arrow-down-b'
+            },
+            loadingIcon: {
+                type: String,
+                default: 'load-c'
             }
         },
         data () {
