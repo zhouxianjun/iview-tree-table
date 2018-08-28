@@ -1,6 +1,6 @@
 {
     "name": "iview-tree-table",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "description": "iview tree table",
     "main": "dist/iview-tree-table.js",
     "scripts": {

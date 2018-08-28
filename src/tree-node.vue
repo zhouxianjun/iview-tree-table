@@ -17,7 +17,7 @@
                         </div>
                     </div>
                 </template>
-                <Tree-Table-node v-if="data.expand" v-for="(item, i) in children" :key="`child-${i}`" :data="item" :columns="columns" :columns-width="columnsWidth" :bottom-line="bottomLine" :show-checkbox="showCheckbox" :children-key="childrenKey">
+                <Tree-Table-node v-if="data.expand" v-for="(item, i) in children" :key="`child-${i}`" :data="item" :columns="columns" :columns-width="columnsWidth" :bottom-line="bottomLine" :show-checkbox="showCheckbox" :arrow-icon-down="arrowIconDown" :arrow-icon-right="arrowIconRight" :loading-icon="loadingIcon" :children-key="childrenKey">
                 </Tree-Table-node>
             </li>
         </ul>
