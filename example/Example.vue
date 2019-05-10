@@ -1,13 +1,13 @@
 <template>
     <div style="margin: 10px">
-        <tree-table 
-        ref="tree" 
-        :data="data2" 
-        :columns="columns" 
-        :load-data="loadData" 
-        show-checkbox 
-        show-header 
-        bottom-line 
+        <tree-table
+        ref="tree"
+        :data="data"
+        :columns="columns"
+        :load-data="loadData"
+        show-checkbox
+        show-header
+        bottom-line
         border
         @on-sort-change="sorting"
         >
