@@ -54,6 +54,7 @@ export default {
 | maxWidth  | 列最大宽度                                                      | Number   | -      |
 | template  | 自定义列模板，作用域插槽（它可以获取到 data, node, column）名称 | String   | ''     |
 | render    | 自定义渲染 render(h, {data, node, column})                      | Function | -      |
+| sortable    | 对应列是否可以排序                                             | Boolean | false   |
 
 ### Table Events
 
@@ -61,12 +62,14 @@ export default {
 | ---------------- | ---------------------- | -------------------- |
 | on-check-change  | 点击复选框时触发       | 当前已勾选节点的数组 |
 | on-toggle-expand | 展开和收起子列表时触发 | 当前节点的数据       |
+| on-sort-change | 排序时有效，当点击排序时触发 | column：当前列数据 <br>key：排序依据的指标<br> order：排序的顺序，值为 asc 或 desc|
 
 ### Table Methods
 
 | 方法名          | 说明             | 参数                                      |
 | --------------- | ---------------- | ----------------------------------------- |
 | getCheckedNodes | 获取被勾选的节点 | 是否获取不定状态 indeterminate 默认 false |
+| checkAll        | 全选或全部取消 | - |
 
 ### Data
 

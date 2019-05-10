@@ -1,6 +1,16 @@
 <template>
     <div style="margin: 10px">
-        <tree-table ref="tree" :data="data2" :columns="columns" :load-data="loadData" show-checkbox show-header bottom-line border>
+        <tree-table 
+        ref="tree" 
+        :data="data2" 
+        :columns="columns" 
+        :load-data="loadData" 
+        show-checkbox 
+        show-header 
+        bottom-line 
+        border
+        @on-sort-change="sorting"
+        >
             <template slot="test" slot-scope="{data}">
                 aa {{data.name}} bb
             </template>
@@ -21,7 +31,8 @@ export default {
             }, {
                 title: '测试',
                 key: 'title',
-                template: 'test'
+                template: 'test',
+                sortable: true
             }],
             data: [{
                 id: 1,
@@ -91,6 +102,9 @@ export default {
             /* eslint-disable no-console */
             console.log(this.$refs.tree.getCheckedNodes());
             console.log(this.$refs.tree.getCheckedNodes(true));
+        },
+        sorting (order) {
+            console.log(order);
         }
     }
 };
