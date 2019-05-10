@@ -2,13 +2,17 @@
     <div :class="[prefixCls, 'tree-table', {'tree-table-border': border, 'tree-table-no-bottom-line': bottomLine}]">
         <div :class="['header', {'header-border-bottom': border, 'header-border': !border}]" v-if="showHeader" ref="header">
             <slot name="header">
-                <template v-for="col in cols">
+                <template v-for="(col, i) in cols">
                     <div :class="[col.className]" :style="colStyle(col)" :key="col._index">
                         <template v-if="col._index === 0 && showCheckbox">
                             <Checkbox :value="checkedAll" :indeterminate="indeterminate" @click.native.prevent="checkAll"></Checkbox>
                         </template>
                         <template v-else>
                             {{col.title}}
+                            <span class="ivu-table-sort" v-if="col.sortable">
+                                <i class="ivu-icon ivu-icon-md-arrow-dropup" :style="selectedStyle('asc', i)" @click="sorting('asc', col, i)"></i> 
+                                <i class="ivu-icon ivu-icon-md-arrow-dropdown" :style="selectedStyle('desc', i)" @click="sorting('desc', col, i)"></i>
+                            </span>
                         </template>
                     </div>
                 </template>
@@ -89,7 +93,8 @@ export default {
             cols: [],
             tableWidth: 0,
             columnsWidth: {},
-            checkedAll: false
+            checkedAll: false,
+            sortRules: ''
         };
     },
     watch: {
@@ -118,7 +123,8 @@ export default {
     methods: {
         colStyle (col) {
             return Object.assign({
-                width: `${this.columnsWidth[col._index]}px`
+                width: `${this.columnsWidth[col._index]}px`,
+                cursor: col.sortable ? 'pointer' : 'auto'
             }, col.style || {});
         },
         transformCols () {
@@ -302,6 +308,23 @@ export default {
         },
         checkAll () {
             this.flatState.forEach(node => this.handleCheck({checked: !this.checkedAll, nodeKey: node.nodeKey}));
+        },
+        sorting (order, column, i) {
+            this.sortRules = order + '-' + i;
+            this.$emit('on-sort-change', {column, key: column.key, order});
+        },
+        selectedStyle (order, i) {
+            if (this.sortRules) {
+                const sortRules = this.sortRules.split('-');
+                if (+sortRules[1] === i && order === sortRules[0]) {
+                    if (order === 'desc') {
+                        return { borderTopColor: '#2d8cf0' };
+                    } else {
+                        return { borderBottomColor: '#2d8cf0' };
+                    }
+                }
+            }
+            return {};
         }
     },
     created () {
@@ -351,5 +374,31 @@ export default {
     border-bottom: 1px solid #e9eaec;
     text-align: center;
     padding: 15px;
+}
+
+.ivu-table-sort {
+    display: inline-block;
+    width: 10px;
+    height: 12px;
+    .ivu-icon-md-arrow-dropup {
+        width: 0;
+        height: 0;
+        border-width: 0 5px 5px;
+        border-style: solid;
+        border-color: transparent transparent #C5C8CE;
+        &:hover {
+            border-bottom-color: #515A6E;
+        }
+    }
+    .ivu-icon-md-arrow-dropdown {
+        width: 0;
+        height: 0;
+        border-width: 5px 5px 0;
+        border-style: solid;
+        border-color: #C5C8CE transparent transparent;
+        &:hover {
+            border-top-color: #515A6E;
+        }
+    }
 }
 </style>
