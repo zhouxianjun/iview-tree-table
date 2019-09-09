@@ -184,7 +184,7 @@
 .tree-table {
     .row {
         .cell-wrapper-border {
-            border-bottom: 1px solid #e9eaec;
+            border-bottom: 1px solid #e8eaec;
         }
         .cell-wrapper {
             display: table-cell;

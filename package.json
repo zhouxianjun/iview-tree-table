@@ -1,6 +1,6 @@
 {
     "name": "iview-tree-table",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "iview tree table",
     "main": "dist/iview-tree-table.js",
     "scripts": {
@@ -21,7 +21,7 @@
     "dependencies": {
         "collapse-transition": "^1.0.0",
         "element-resize-detector": "^1.1.14",
-        "iview": "^2.8.0",
+        "iview": "^3.0.1",
         "vue": "^2.5.13",
         "vue-emitter": "^1.0.1"
     },

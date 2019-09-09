@@ -1,15 +1,24 @@
 <template>
     <div style="margin: 10px">
+        <div>
+            <Checkbox v-model="border">边框</Checkbox>
+            <Checkbox v-model="bottomLine">底线</Checkbox>
+            <Checkbox v-model="showCheckbox">显示复选框</Checkbox>
+            <Checkbox v-model="showHeader">显示头</Checkbox>
+        </div>
         <tree-table
-        ref="tree"
-        :data="data"
-        :columns="columns"
-        :load-data="loadData"
-        show-checkbox
-        show-header
-        bottom-line
-        border
-        @on-sort-change="sorting"
+            ref="tree"
+            :max-height="300"
+            :data="data"
+            :columns="columns"
+            :load-data="loadData"
+            :show-checkbox="showCheckbox"
+            :show-header="showHeader"
+            :bottom-line="bottomLine"
+            :border="border"
+            @on-sort-change="sorting"
+            arrow-icon-down="md-arrow-dropdown"
+            arrow-icon-right="md-arrow-dropright"
         >
             <template slot="test" slot-scope="{data}">
                 aa {{data.name}} bb
@@ -25,6 +34,10 @@ export default {
     name: 'example',
     data () {
         return {
+            border: true,
+            bottomLine: true,
+            showCheckbox: true,
+            showHeader: true,
             columns: [{
                 title: '名称',
                 key: 'name'
@@ -69,6 +82,19 @@ export default {
                 id: 3,
                 name: '3',
                 _disable: true
+            }, {
+                id: 4,
+                name: '4',
+                _expand: true,
+                children: [{
+                    id: 41,
+                    pid: 4,
+                    name: '41'
+                }, {
+                    id: 42,
+                    pid: 4,
+                    name: '42'
+                }]
             }],
             data2: [{
                 title: 'parent',

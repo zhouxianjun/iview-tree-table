@@ -10,7 +10,7 @@
                         <template v-else>
                             {{col.title}}
                             <span class="ivu-table-sort" v-if="col.sortable">
-                                <i class="ivu-icon ivu-icon-md-arrow-dropup" :style="selectedStyle('asc', i)" @click="sorting('asc', col, i)"></i> 
+                                <i class="ivu-icon ivu-icon-md-arrow-dropup" :style="selectedStyle('asc', i)" @click="sorting('asc', col, i)"></i>
                                 <i class="ivu-icon ivu-icon-md-arrow-dropdown" :style="selectedStyle('desc', i)" @click="sorting('desc', col, i)"></i>
                             </span>
                         </template>
@@ -18,8 +18,19 @@
                 </template>
             </slot>
         </div>
-        <tree-table-node v-for="(item, i) in stateTree" :key="i" :data="item" :columns="cols.slice(1)" :columns-width="columnsWidth" visible :bottom-line="bottomLine" :show-checkbox="showCheckbox" :arrow-icon-down="arrowIconDown" :arrow-icon-right="arrowIconRight" :loading-icon="loadingIcon" :children-key="childrenKey">
-        </tree-table-node>
+        <div :style="bodyStyle">
+            <tree-table-node v-for="(item, i) in stateTree" :key="i"
+                             :data="item" :columns="cols.slice(1)"
+                             :columns-width="columnsWidth" visible
+                             :bottom-line="bottomLine"
+                             :show-checkbox="showCheckbox"
+                             :arrow-icon-down="arrowIconDown"
+                             :arrow-icon-right="arrowIconRight"
+                             :loading-icon="loadingIcon"
+                             :children-key="childrenKey"
+            >
+            </tree-table-node>
+        </div>
         <div :class="[prefixCls + '-empty']" v-if="!stateTree.length">{{ emptyText }}</div>
     </div>
 </template>
@@ -44,6 +55,12 @@ export default {
             default () {
                 return [];
             }
+        },
+        height: {
+            type: Number
+        },
+        maxHeight: {
+            type: Number
         },
         bottomLine: {
             type: Boolean,
@@ -118,6 +135,17 @@ export default {
                 return true;
             }
             return false;
+        },
+        bodyStyle () {
+            const { height, maxHeight } = this;
+            if (height || maxHeight) {
+                return {
+                    height: height ? `${height}px` : 'auto',
+                    maxHeight: maxHeight ? `${maxHeight}px` : null,
+                    overflowY: 'auto'
+                };
+            }
+            return {};
         }
     },
     methods: {
@@ -344,13 +372,24 @@ export default {
 <style lang="less" scoped>
 .tree-table-border {
     border: 1px solid #dddee1;
+    border-bottom: 0;
+    &:before {
+        content: "";
+        position: absolute;
+        background-color: #dcdee2;
+        width: 100%;
+        height: 1px;
+        left: 0;
+        bottom: 0;
+        z-index: 1;
+    }
 }
 .tree-table {
     .header-border {
-        border: 1px solid #e9eaec;
+        border: 1px solid #e8eaec;
     }
     .header-border-bottom {
-        border-bottom: 1px solid #e9eaec;
+        border-bottom: 1px solid #e8eaec;
     }
     .header {
         height: 36px;
