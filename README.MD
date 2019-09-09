@@ -40,6 +40,9 @@ export default {
 | arrow-icon-right   | 箭头图标-右                                  | String  | -    | arrow-right-b      |
 | arrow-icon-down    | 箭头图标-下                                 | String  | -    | arrow-down-b      |
 | loading-icon   | 加载图标                                  | String  | -    | load-c      |
+| height    | 表格高度（不包含头）                                             | Number | -   |-   |
+| maxHeight    | 表格最高高度（不包含头）                                             | Number | -   |-   |
+
 
 ### Columns Configs
 
@@ -55,8 +58,6 @@ export default {
 | template  | 自定义列模板，作用域插槽（它可以获取到 data, node, column）名称 | String   | ''     |
 | render    | 自定义渲染 render(h, {data, node, column})                      | Function | -      |
 | sortable    | 对应列是否可以排序                                             | Boolean | false   |
-| height    | 表格高度（不包含头）                                             | Number | -   |
-| maxHeight    | 表格最高高度（不包含头）                                             | Number | -   |
 
 ### Table Events
 
